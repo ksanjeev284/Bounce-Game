@@ -99,65 +99,67 @@ class NokiaBounceGame {
     setupControls() {
         this.startButton.addEventListener('click', () => this.startGame());
         
-        // Mouse/Touch controls
-        let lastMove = 0;
-        const moveHandler = (e) => {
-            const now = performance.now();
-            if (now - lastMove > 16) {
-                const rect = this.canvas.getBoundingClientRect();
-                const relativeX = (e.clientX || e.touches[0].clientX) - rect.left;
-                if (relativeX > 0 && relativeX < this.canvas.width) {
-                    this.paddle.x = Math.max(0, Math.min(this.canvas.width - this.paddle.width, relativeX - this.paddle.width / 2));
-                }
-                lastMove = now;
-            }
-        };
-
-        this.canvas.addEventListener('mousemove', moveHandler);
-        this.canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            moveHandler(e);
-        });
-
-        // Mobile button controls
-        const leftButton = document.getElementById('leftButton');
-        const rightButton = document.getElementById('rightButton');
-        
-        const moveLeft = () => {
-            this.paddle.x = Math.max(0, this.paddle.x - 20);
-        };
-        
-        const moveRight = () => {
-            this.paddle.x = Math.min(this.canvas.width - this.paddle.width, this.paddle.x + 20);
-        };
-
-        // Touch events for mobile buttons
-        leftButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.leftInterval = setInterval(moveLeft, 16);
-        });
-        
-        rightButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.rightInterval = setInterval(moveRight, 16);
-        });
-
-        leftButton.addEventListener('touchend', () => {
-            clearInterval(this.leftInterval);
-        });
-        
-        rightButton.addEventListener('touchend', () => {
-            clearInterval(this.rightInterval);
-        });
-
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
-                moveLeft();
-            } else if (e.key === 'ArrowRight') {
-                moveRight();
+            if (this.isRunning) {
+                if (e.key === 'ArrowLeft') {
+                    this.movePaddle(-1);
+                } else if (e.key === 'ArrowRight') {
+                    this.movePaddle(1);
+                }
             }
         });
+
+        // Mobile touch controls
+        const leftButton = document.getElementById('leftButton');
+        const rightButton = document.getElementById('rightButton');
+
+        // Touch events for buttons
+        leftButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.isRunning) this.movePaddle(-1);
+        });
+
+        rightButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.isRunning) this.movePaddle(1);
+        });
+
+        // Touch events for canvas swipe
+        let touchStartX = null;
+        
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartX = e.touches[0].clientX;
+        }, { passive: false });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (touchStartX === null || !this.isRunning) return;
+
+            const touchX = e.touches[0].clientX;
+            const diffX = touchX - touchStartX;
+            
+            // Calculate paddle movement based on touch movement
+            const sensitivity = 1.5;
+            const moveAmount = (diffX / this.canvas.width) * this.paddle.width * sensitivity;
+            
+            this.paddle.x = Math.max(0, Math.min(this.canvas.width - this.paddle.width, 
+                this.paddle.x + moveAmount));
+            
+            touchStartX = touchX;
+        }, { passive: false });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchStartX = null;
+        }, { passive: false });
+    }
+
+    movePaddle(direction) {
+        const moveAmount = 20;
+        this.paddle.x = Math.max(0, Math.min(this.canvas.width - this.paddle.width, 
+            this.paddle.x + moveAmount * direction));
     }
 
     createBricks() {

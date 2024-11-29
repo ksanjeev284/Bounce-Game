@@ -96,24 +96,50 @@ body {
 /* Media Queries for Responsive Design */
 @media (max-width: 768px) {
     .game-container {
-        padding: 15px;
+        padding: 10px;
+        width: 100%;
+    }
+
+    .game-header {
+        font-size: 14px;
+    }
+
+    #gameCanvas {
+        width: 100%;
+        max-height: 70vh;
     }
 
     .mobile-controls {
         display: flex;
     }
-}
 
-@media (max-height: 600px) {
-    .game-container {
-        padding: 10px;
-    }
-
-    .game-header {
-        margin-bottom: 10px;
+    #leftButton, #rightButton {
+        padding: 15px;
+        width: 80px;
+        font-size: 20px;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     .game-controls {
         margin-top: 10px;
+    }
+}
+
+@media (orientation: landscape) and (max-width: 900px) {
+    .game-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .game-controls {
+        margin-top: 0;
+    }
+
+    #gameCanvas {
+        max-height: 80vh;
+        width: auto;
     }
 }
